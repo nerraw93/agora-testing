@@ -44,6 +44,7 @@ export default {
   },
   data () {
     return {
+      state: this.$root.$data.state,
       option: {
         appid: '',
         token: '',
@@ -84,9 +85,23 @@ export default {
             message: 'Publish Success',
             type: 'success'
           });*/
+          const getCircularReplacer = () => {
+            const seen = new WeakSet();
+            return (key, value) => {
+              if (typeof value === "object" && value !== null) {
+                if (seen.has(value)) {
+                  return;
+                }
+                seen.add(value);
+              }
+              return value;
+            };
+          };
+
+          localStorage.setItem('storedData', JSON.stringify(stream, getCircularReplacer()))
           this.localStream = stream
         }).catch((err) => {
-          this.$message.error('Publish Failure');
+          //this.$message.error('Publish Failure');
           log('publish local error', err)
         })
       }).catch((err) => {
@@ -133,9 +148,16 @@ export default {
       });
     },
   },
+  mounted() {
+    console.log(this.state)
+    /*const storedData = JSON.parse(localStorage.getItem('storedData'))
+    if (storedData) {
+      this.localStream = storedData
+      console.log(storedData)
+    }*/
+  },
   created() {
     this.rtc = new RTCClient()
-    console.log(this.rtc)
     let rtc = this.rtc
     rtc.on('stream-added', (evt) => {
       let {stream} = evt
