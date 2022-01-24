@@ -44,6 +44,7 @@ export default {
   },
   data () {
     return {
+      state: this.$root.$data.state,
       option: {
         appid: '',
         token: '',
@@ -57,6 +58,7 @@ export default {
       audioCaption: "mute audio",
       localStream: null,
       remoteStreams: [],
+      online: false,
     }
   },
   props: {
@@ -65,7 +67,6 @@ export default {
   
   methods: {
     joinEvent () {
-      console.log(this.option.appid)
       if(!this.option.appid) {
         this.judge('Appid')
         return
@@ -84,9 +85,11 @@ export default {
             message: 'Publish Success',
             type: 'success'
           });*/
+
+          localStorage.setItem('storedData', JSON.stringify(this.option))
           this.localStream = stream
         }).catch((err) => {
-          this.$message.error('Publish Failure');
+          //this.$message.error('Publish Failure');
           log('publish local error', err)
         })
       }).catch((err) => {
@@ -132,10 +135,23 @@ export default {
         type: 'warning'
       });
     },
+    closeEvent() {
+      this.online = false
+      localStorage.removeItem('storedData')
+    }
+  },
+  mounted() {
+    const storedData = JSON.parse(localStorage.getItem('storedData'))
+    if (storedData) {
+      this.option = storedData
+      this.joinEvent()
+      this.online = true
+    }
   },
   created() {
+    //window.addEventListener('beforeunload', this.closeEvent)
+    
     this.rtc = new RTCClient()
-    console.log(this.rtc)
     let rtc = this.rtc
     rtc.on('stream-added', (evt) => {
       let {stream} = evt
@@ -162,7 +178,7 @@ export default {
       this.$message(`Peer ${evt.uid} already leave`)
       this.remoteStreams = this.remoteStreams.filter((it) => it.getId() !== evt.uid)
     }) 
-  }
+  },
  }
 </script>
 
