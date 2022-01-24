@@ -58,6 +58,7 @@ export default {
       audioCaption: "mute audio",
       localStream: null,
       remoteStreams: [],
+      online: false,
     }
   },
   props: {
@@ -66,7 +67,6 @@ export default {
   
   methods: {
     joinEvent () {
-      console.log(this.option.appid)
       if(!this.option.appid) {
         this.judge('Appid')
         return
@@ -85,20 +85,8 @@ export default {
             message: 'Publish Success',
             type: 'success'
           });*/
-          const getCircularReplacer = () => {
-            const seen = new WeakSet();
-            return (key, value) => {
-              if (typeof value === "object" && value !== null) {
-                if (seen.has(value)) {
-                  return;
-                }
-                seen.add(value);
-              }
-              return value;
-            };
-          };
 
-          localStorage.setItem('storedData', JSON.stringify(stream, getCircularReplacer()))
+          localStorage.setItem('storedData', JSON.stringify(this.option))
           this.localStream = stream
         }).catch((err) => {
           //this.$message.error('Publish Failure');
@@ -147,16 +135,22 @@ export default {
         type: 'warning'
       });
     },
+    closeEvent() {
+      this.online = false
+      localStorage.removeItem('storedData')
+    }
   },
   mounted() {
-    console.log(this.state)
-    /*const storedData = JSON.parse(localStorage.getItem('storedData'))
+    const storedData = JSON.parse(localStorage.getItem('storedData'))
     if (storedData) {
-      this.localStream = storedData
-      console.log(storedData)
-    }*/
+      this.option = storedData
+      this.joinEvent()
+      this.online = true
+    }
   },
   created() {
+    //window.addEventListener('beforeunload', this.closeEvent)
+    
     this.rtc = new RTCClient()
     let rtc = this.rtc
     rtc.on('stream-added', (evt) => {
@@ -184,7 +178,7 @@ export default {
       this.$message(`Peer ${evt.uid} already leave`)
       this.remoteStreams = this.remoteStreams.filter((it) => it.getId() !== evt.uid)
     }) 
-  }
+  },
  }
 </script>
 
