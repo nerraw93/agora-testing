@@ -12,7 +12,9 @@ export default class RTCClient {
     }
     this.client = null
     this.localStream = null
-    this._eventBus = new EventEmitter()
+    this._eventBus = new EventEmitter(),
+    this.audioDevices = null,
+    this.videoDevices = null
   }
 
   //init client and Join a channel
@@ -113,6 +115,26 @@ export default class RTCClient {
         console.log("channel leave failed");
         console.error(err);
       })
+    })
+  }
+
+  getDevices() {
+    return new Promise((resolve, reject) => {
+      AgoraRTC.getDevices((devices) => {
+        const audioDevices = devices.filter(function(device){
+          return device.kind === "audioinput";
+        });
+        const videoDevices = devices.filter(function(device){
+            return device.kind === "videoinput";
+        });
+
+        this.audioDevices = audioDevices
+        this.videoDevices = videoDevices
+        resolve()
+      }, (errStr) => {
+        reject(errStr)
+        console.error("Failed to getDevice", errStr);
+      });
     })
   }
 }
