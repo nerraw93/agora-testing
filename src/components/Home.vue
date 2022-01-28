@@ -21,6 +21,7 @@
         <button type="primary" @click='leaveEvent' plain :disabled='!disableJoin'>leave</button>
         <button type="primary" @click="handleMic" :disabled='!disableJoin'>{{ audioCaption }}</button>
         <button type="primary" @click="handleCamera" :disabled='!disableJoin'>{{ videoCaption }}</button>
+        <button type="primary" @click="openSettings">settings</button>
       </div>
     </div> 
     <div class="agora-view">
@@ -30,7 +31,14 @@
       <div class="agora-video" :key="index" v-for="(remoteStream, index) in remoteStreams">
         <StreamPlayer :stream="remoteStream" :domId="remoteStream.getId()"></StreamPlayer>
       </div>
-    </div>   
+    </div>
+
+    <modal 
+      v-if="showModal" 
+      @close="saveSettings"
+      :audioDevices="rtc.audioDevices"
+      :videoDevices="rtc.videoDevices"
+    ></modal>
   </div>
 </template>
 
@@ -38,9 +46,12 @@
 import RTCClient from "../agora-rtc-client";
 import StreamPlayer from "./stream-player";
 import { log } from '../utils/utils'
+import modal from './modal'
+
 export default {
   components: {
-    StreamPlayer
+    StreamPlayer,
+    modal
   },
   data () {
     return {
@@ -59,6 +70,7 @@ export default {
       localStream: null,
       remoteStreams: [],
       online: false,
+      showModal: false,
     }
   },
   props: {
@@ -88,6 +100,7 @@ export default {
 
           localStorage.setItem('storedData', JSON.stringify(this.option))
           this.localStream = stream
+          this.rtc.getDevices()
         }).catch((err) => {
           //this.$message.error('Publish Failure');
           log('publish local error', err)
@@ -112,6 +125,8 @@ export default {
       })
       this.localStream = null
       this.remoteStreams = []
+      
+      localStorage.removeItem('storedData')
     },
     handleCamera () {
       this.disableVideo = !this.disableVideo
@@ -138,6 +153,15 @@ export default {
     closeEvent() {
       this.online = false
       localStorage.removeItem('storedData')
+    },
+    openSettings() {
+      this.rtc.getDevices()
+      this.showModal = true
+    },
+    saveSettings(devices) {
+      this.showModal = false
+      this.localStream.getVideoTrack().stop()
+      this.localStream.switchDevice("video", devices.videoPrefer)
     }
   },
   mounted() {
@@ -177,7 +201,7 @@ export default {
     rtc.on('peer-leave', (evt) => {
       this.$message(`Peer ${evt.uid} already leave`)
       this.remoteStreams = this.remoteStreams.filter((it) => it.getId() !== evt.uid)
-    }) 
+    })
   },
  }
 </script>
