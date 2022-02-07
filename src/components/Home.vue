@@ -23,7 +23,7 @@
         <button type="primary" @click="handleCamera" :disabled='!disableJoin'>{{ videoCaption }}</button>
         <button type="primary" @click="openSettings">settings</button>
       </div>
-    </div> 
+    </div>
     <div class="agora-view">
       <div class="agora-video">
         <StreamPlayer :stream="localStream" :domId="localStream.getId()" v-if="localStream"></StreamPlayer>
@@ -70,7 +70,7 @@ export default {
       localStream: null,
       remoteStreams: [],
       online: false,
-      showModal: false,
+      showModal: false
     }
   },
   props: {
@@ -139,8 +139,8 @@ export default {
       this.disableAudio = !this.disableAudio
       this.audioCaption = this.disableAudio ? 'unmute audio' : 'mute audio'
       this.localStream.isAudioOn()
-        ? this.localStream.disableAudio()
-        : this.localStream.enableAudio();
+        ? this.localStream.muteAudio()
+        : this.localStream.unmuteAudio();
     },
     judge(detail) {
       this.$notify({
@@ -201,6 +201,14 @@ export default {
     rtc.on('peer-leave', (evt) => {
       this.$message(`Peer ${evt.uid} already leave`)
       this.remoteStreams = this.remoteStreams.filter((it) => it.getId() !== evt.uid)
+    })
+    rtc.on('mute-audio', (evt) => {
+      document.getElementById('mute_' + evt.uid + '_enabled').style.display = 'none'
+      document.getElementById('mute_' + evt.uid + '_disabled').style.display = 'inline-block'
+    })
+    rtc.on('unmute-audio', (evt) => {
+      document.getElementById('mute_' + evt.uid + '_enabled').style.display = 'inline-block'
+      document.getElementById('mute_' + evt.uid + '_disabled').style.display = 'none'
     })
   },
  }
