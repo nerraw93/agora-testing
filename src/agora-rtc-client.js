@@ -88,6 +88,12 @@ export default class RTCClient {
     client.on('peer-leave', (evt) => {
       this._eventBus.emit('peer-leave', evt)
     })
+    client.on('mute-audio', (evt) => {
+      this._eventBus.emit('mute-audio', evt)
+    })
+    client.on('unmute-audio', (evt) => {
+      this._eventBus.emit('unmute-audio', evt)
+    })
   }
 
   on(eventName, callback) {
