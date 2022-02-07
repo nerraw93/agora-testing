@@ -1,5 +1,8 @@
 <template>
-  <div class="agora-video-player" ref="player" :id="domId"></div>
+  <div class="agora-video-player" ref="player" :id="domId">
+    <font-awesome-icon :id="'mute_' + domId + '_enabled'" class="mic" icon="microphone" />
+    <font-awesome-icon :id="'mute_' + domId + '_disabled'" class="mic" icon="microphone-slash" style="display: none" />
+  </div>
 </template>
 
 <script>
@@ -7,7 +10,7 @@ export default {
   name: 'stream-player',
   props: [
     'stream',
-    'domId',
+    'domId'
   ],
   mounted () {
     this.$nextTick(function () {
@@ -35,5 +38,16 @@ export default {
 .agora-video-player {
   height: 100%;
   width: 100%;
+}
+
+video {
+  position: relative !important;
+}
+
+.mic {
+position: absolute;
+z-index: 1;
+margin-left: 120px;
+margin-top: 20px;
 }
 </style>
